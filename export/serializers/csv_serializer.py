@@ -21,6 +21,7 @@ http://docs.djangoproject.com/en/1.2/topics/serialization/
 import codecs
 import csv
 import re
+
 try:
     from StringIO import StringIO
 except ImportError:
@@ -31,7 +32,14 @@ from operator import itemgetter
 
 from django.core.serializers.python import Serializer as PythonSerializer
 from django.core.serializers.python import Deserializer as PythonDeserializer
-from django.utils import six
+
+try:
+    from django.utils import six
+except ImportError:
+    try:
+        import six
+    except ImportError:
+        raise ImportError("please run 'pip install six'")
 from django.utils.encoding import smart_text
 
 
@@ -119,6 +127,7 @@ def Deserializer(stream_or_string, **options):
     """
     Deserialize a stream or string of CSV data.
     """
+
     def process_item(item):
         m = _LIST_RE.match(item)
         if m:
@@ -179,6 +188,7 @@ class UTF8Recoder(object):
     """
     Iterator that reads an encoded stream and reencodes the input to UTF-8
     """
+
     def __init__(self, f, encoding):
         self.reader = codecs.getreader(encoding)(f)
 
