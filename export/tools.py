@@ -46,12 +46,16 @@ class Export(object_tools.ObjectTool):
 
         return format, data
 
-    def export_response(self, form):
+    def export_response(self, request, form):
         format, data = self.get_data(form)
         filename = self.gen_filename(format)
         response = HttpResponse(
-            data, content_type=mimetypes.guess_type(filename)[0]
+            content_type=mimetypes.guess_type(filename)[0]
         )
+        if format == "csv" and "Windows" in request.headers.get('User-Agent'):
+            import codecs
+            response.write(codecs.BOM_UTF8)
+        response.write(data)
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
         return response
 
@@ -88,7 +92,7 @@ class Export(object_tools.ObjectTool):
                 messages.add_message(request, messages.SUCCESS, message)
                 self.mail_response(request, extra_context)
             else:
-                return self.export_response(form)
+                return self.export_response(request, form)
 
         adminform = helpers.AdminForm(form, form.fieldsets, {})
 
@@ -100,5 +104,6 @@ class Export(object_tools.ObjectTool):
             'export/export_form.html',
             context,
         )
+
 
 object_tools.tools.register(Export)
